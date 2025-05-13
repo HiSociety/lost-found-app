@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden" style='font-family: Manrope, "Noto Sans", sans-serif;'>
+        <div class="layout-container flex h-full grow flex-col">
+            <header class="bg-white shadow-sm">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center h-16">
+                        <!-- Logo Section -->
+                        <div class="flex-shrink-0 flex items-center">
+                            <a href="{{ url_for('home') }}" class="flex items-center space-x-2">
+                                <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Lost & Found Logo" class="h-8 w-8">
+                                <span class="text-xl font-semibold text-gray-900">Lost & Found</span>
+                            </a>
+                        </div>
+                        
+                        <!-- Mobile menu button -->
+                        <div class="flex items-center sm:hidden">
+                            <button type="button" class="mobile-menu-button inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500" aria-controls="mobile-menu" aria-expanded="false">
+                                <span class="sr-only">Open main menu</span>
+                                <!-- Icon when menu is closed -->
+                                <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                                </svg>
+                                <!-- Icon when menu is open -->
+                                <svg class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Desktop Navigation -->
+                        <div class="hidden sm:flex sm:items-center sm:space-x-8">
+                            <nav class="flex items-center space-x-8">
+                                <a class="text-gray-700 hover:text-gray-900 text-sm font-medium" href="{{ url_for('post_item') }}">Post a document</a>
+                                <a class="text-gray-700 hover:text-gray-900 text-sm font-medium" href="{{ url_for('search_item') }}">Find a document</a>
+                                <a class="text-gray-700 hover:text-gray-900 text-sm font-medium" href="#how-it-works">How it works</a>
+                                {% if current_user.is_authenticated and current_user.is_admin %}
+                                <a class="text-gray-700 hover:text-gray-900 text-sm font-medium" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
+                                {% endif %}
+                                <a class="text-gray-700 hover:text-gray-900 text-sm font-medium" href="{{ url_for('community') }}">Community</a>
+                            </nav>
+                            
+                            {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('logout') }}"
+                                class="inline-flex items-center justify-center px-4 h-9 text-sm font-semibold text-white bg-[#1980e6] rounded-lg hover:bg-blue-600 transition-colors"
+                            >
+                                Sign out
+                            </a>
+                            {% else %}
+                            <a href="{{ url_for('login') }}"
+                                class="inline-flex items-center justify-center px-4 h-9 text-sm font-semibold text-white bg-[#1980e6] rounded-lg hover:bg-blue-600 transition-colors"
+                            >
+                                Sign in
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile menu -->
+                <div class="sm:hidden hidden" id="mobile-menu">
+                    <div class="pt-2 pb-3 space-y-1">
+                        <a href="{{ url_for('post_item') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Post a document</a>
+                        <a href="{{ url_for('search_item') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Find a document</a>
+                        <a href="#how-it-works" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">How it works</a>
+                        {% if current_user.is_authenticated and current_user.is_admin %}
+                        <a href="{{ url_for('admin_dashboard') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Admin Dashboard</a>
+                        {% endif %}
+                        <a href="{{ url_for('community') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Community</a>
+                    </div>
+                    <div class="pt-4 pb-3 border-t border-gray-200">
+                        {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('logout') }}"
+                            class="block w-full text-center px-4 py-2 text-base font-medium text-white bg-[#1980e6] rounded-lg hover:bg-blue-600 transition-colors"
+                        >
+                            Sign out
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('login') }}"
+                            class="block w-full text-center px-4 py-2 text-base font-medium text-white bg-[#1980e6] rounded-lg hover:bg-blue-600 transition-colors"
+                        >
+                            Sign in
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </header>
+
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div class="px-4 sm:px-10 py-4">
+                {% for message in messages %}
+                <div class="rounded-lg bg-blue-50 p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-blue-800">{{ message }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.querySelector('.mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIcons = mobileMenuButton.querySelectorAll('svg');
+
+            mobileMenuButton.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+                menuIcons.forEach(icon => icon.classList.toggle('hidden'));
+            });
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

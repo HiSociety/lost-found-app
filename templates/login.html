@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Lost and Found{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Sign in to your account
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Or
+                <a href="{{ url_for('register') }}" class="font-medium text-[#1980e6] hover:text-[#1980e6]/80">
+                    create a new account
+                </a>
+            </p>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="rounded-md p-4 mb-4 {% if category == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form class="mt-8 space-y-6" method="POST" action="{{ url_for('login') }}" id="loginForm" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="rounded-md shadow-sm -space-y-px">
+                <div>
+                    <label for="email" class="sr-only">Email address</label>
+                    {{ form.email(class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-[#1980e6] focus:border-[#1980e6] focus:z-10 sm:text-sm", placeholder="Email address", id="email", required=True, type="email") }}
+                    <p class="mt-1 text-sm text-red-600 hidden" id="emailError"></p>
+                    {% for error in form.email.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                <div>
+                    <label for="password" class="sr-only">Password</label>
+                    {{ form.password(class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-[#1980e6] focus:border-[#1980e6] focus:z-10 sm:text-sm", placeholder="Password", id="password", required=True) }}
+                    <p class="mt-1 text-sm text-red-600 hidden" id="passwordError"></p>
+                    {% for error in form.password.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    {{ form.remember_me(class="h-4 w-4 text-[#1980e6] focus:ring-[#1980e6] border-gray-300 rounded") }}
+                    <label for="remember_me" class="ml-2 block text-sm text-gray-900">
+                        Remember me
+                    </label>
+                </div>
+
+                <div class="text-sm">
+                    <a href="{{ url_for('reset_password') }}" class="font-medium text-[#1980e6] hover:text-[#1980e6]/80">
+                        Forgot your password?
+                    </a>
+                </div>
+            </div>
+
+            <div>
+                {{ form.submit(class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#1980e6] hover:bg-[#1566b7] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1980e6]") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('loginForm');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    function showError(input, message) {
+        const errorElem = document.getElementById(input.id + 'Error');
+        if (errorElem) {
+            errorElem.textContent = message;
+            errorElem.classList.remove('hidden');
+        }
+        input.classList.add('border-red-500');
+    }
+    function clearError(input) {
+        const errorElem = document.getElementById(input.id + 'Error');
+        if (errorElem) {
+            errorElem.textContent = '';
+            errorElem.classList.add('hidden');
+        }
+        input.classList.remove('border-red-500');
+    }
+    function validateField(input) {
+        clearError(input);
+        if (!input.value.trim()) {
+            showError(input, 'This field is required.');
+            return false;
+        }
+        if (input === email && !/^\S+@\S+\.\S+$/.test(input.value)) {
+            showError(input, 'Enter a valid email address.');
+            return false;
+        }
+        return true;
+    }
+    [email, password].forEach(input => {
+        input.addEventListener('input', () => validateField(input));
+    });
+    form.addEventListener('submit', function(e) {
+        let valid = true;
+        [email, password].forEach(input => {
+            if (!validateField(input)) valid = false;
+        });
+        if (!valid) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %} 

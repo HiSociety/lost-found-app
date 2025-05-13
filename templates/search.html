@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+
+{% block title %}Search Documents - Lost and Found{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+        <div class="bg-white shadow sm:rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                    Search Documents
+                </h3>
+                <div class="mt-2 max-w-xl text-sm text-gray-500">
+                    <p>Search for lost documents by ID number or holder name.</p>
+                </div>
+                <form method="POST" class="mt-5 space-y-4">
+                    {{ form.hidden_tag() }}
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            {{ form.search_query.label(class="block text-sm font-medium text-gray-700") }}
+                            {{ form.search_query(class="mt-1 focus:ring-[#1980e6] focus:border-[#1980e6] block w-full shadow-sm sm:text-sm border-gray-300 rounded-md") }}
+                        </div>
+                        <div>
+                            {{ form.document_type.label(class="block text-sm font-medium text-gray-700") }}
+                            {{ form.document_type(class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-[#1980e6] focus:border-[#1980e6] sm:text-sm rounded-md") }}
+                        </div>
+                    </div>
+                    <div>
+                        {{ form.submit(class="w-full sm:w-auto inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#1980e6] hover:bg-[#1980e6]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1980e6]") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if search_performed %}
+        <div class="mt-8">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                Search Results
+            </h3>
+            {% if items.items|length == 0 %}
+            <div class="text-center text-gray-500 text-base py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h2a4 4 0 014 4v2m-6 4h.01M6 17v-2a4 4 0 014-4h2a4 4 0 014 4v2m-6 4h.01" />
+                </svg>
+                <span class="block font-semibold">No item with the search details has been found</span>
+            </div>
+            {% endif %}
+            {% if items.items|length > 0 %}
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {% for item in items.items %}
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-4">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                {% if item.images %}
+                                <img src="{{ url_for('static', filename='uploads/' + item.images[0].filename) }}" 
+                                     alt="Document" 
+                                     class="h-16 w-16 object-cover rounded-lg"
+                                     loading="lazy">
+                                {% else %}
+                                <div class="h-16 w-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                                    <svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-lg font-medium text-gray-900">{{ item.name }}</h4>
+                                <p class="text-sm text-gray-500">{{ item.document_type|title }}</p>
+                                <p class="text-sm text-gray-500">ID: {{ item.unique_id }}</p>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button onclick="showDetailsModal({{ item.id }})" 
+                                    class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#1980e6] hover:bg-[#1980e6]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1980e6]">
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if items.pages > 1 %}
+            <div class="mt-8 flex justify-center">
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    {% if items.has_prev %}
+                    <a href="{{ url_for('search_item', page=items.prev_num, document_type=form.document_type.data, search_query=form.search_query.data) }}" 
+                       class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        <span class="sr-only">Previous</span>
+                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                    {% endif %}
+
+                    {% for page_num in items.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num == items.page %}
+                            <a href="{{ url_for('search_item', page=page_num, document_type=form.document_type.data, search_query=form.search_query.data) }}" 
+                               class="z-10 bg-[#1980e6] border-[#1980e6] text-white relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                {{ page_num }}
+                            </a>
+                            {% else %}
+                            <a href="{{ url_for('search_item', page=page_num, document_type=form.document_type.data, search_query=form.search_query.data) }}" 
+                               class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                {{ page_num }}
+                            </a>
+                            {% endif %}
+                        {% else %}
+                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                ...
+                            </span>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if items.has_next %}
+                    <a href="{{ url_for('search_item', page=items.next_num, document_type=form.document_type.data, search_query=form.search_query.data) }}" 
+                       class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        <span class="sr-only">Next</span>
+                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                    {% endif %}
+                </nav>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div id="detailsModal" class="fixed inset-0 bg-gray-500 bg-opacity-60 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full mx-4 p-8 relative flex flex-col items-center font-sans" style="font-family: 'Manrope', 'Inter', 'Noto Sans', sans-serif;">
+        <button onclick="closeDetailsModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        <div id="detailsContent" class="w-full text-center"></div>
+        <div class="mt-8 w-full">
+            <button id="claimBtn" onclick="showClaimModal()" 
+                    class="w-full py-3 rounded-lg text-lg font-semibold text-white bg-[#1980e6] hover:bg-[#1566b7] transition-colors shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1980e6]">
+                Claim
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Claim Modal -->
+<div id="claimModal" class="fixed inset-0 bg-gray-500 bg-opacity-60 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-8 relative flex flex-col items-center font-sans" style="font-family: 'Manrope', 'Inter', 'Noto Sans', sans-serif;">
+        <button onclick="closeClaimModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        <div class="w-full mb-4">
+            <div class="flex items-center justify-center mb-2 gap-2">
+                <svg class="h-6 w-6 text-[#1980e6] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 01-8 0 4 4 0 018 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14v7m0 0H9m3 0h3" />
+                </svg>
+                <span class="font-bold text-lg text-gray-900">Contact:</span>
+                <span id="claimContact" class="ml-2 text-base text-gray-800"></span>
+                <button id="copyContactBtn" type="button" class="ml-2 flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-200 text-sm text-[#1980e6] font-medium focus:outline-none focus:ring-2 focus:ring-[#1980e6]" title="Copy Contact" aria-label="Copy Contact" onclick="copyContactToClipboard()">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16h8M8 12h8m-7 8h6a2 2 0 002-2V6a2 2 0 00-2-2H8a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>Copy Contact</span>
+                </button>
+                <span id="copyMsg" class="ml-2 text-green-600 text-sm hidden">Copied!</span>
+            </div>
+            <div class="flex items-start bg-blue-50 border-l-4 border-blue-400 p-3 rounded mb-3">
+                <svg class="h-5 w-5 text-blue-400 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01" />
+                </svg>
+                <div class="text-sm text-blue-800">
+                    The contact above belongs to the person who found this document. You can contact them directly.<br>
+                    <span class="font-medium">Please be respectful and do not share their contact publicly.</span>
+                </div>
+            </div>
+            <div class="text-xs text-yellow-700 bg-yellow-100 p-3 rounded mb-4 text-center">
+                <b>Note:</b> If you proceed to claim this document, the document will auto delete within the next 24 hours.
+            </div>
+        </div>
+        <button id="proceedClaimBtn" onclick="proceedToClaim()" 
+                class="w-full py-3 rounded-lg text-lg font-semibold text-white bg-[#1980e6] hover:bg-[#1566b7] transition-colors shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1980e6]">
+            Proceed to Claim
+        </button>
+    </div>
+</div>
+
+<!-- Success Popup -->
+<div id="claimSuccessPopup" class="fixed inset-0 bg-gray-500 bg-opacity-60 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-xs w-full mx-4 p-8 flex flex-col items-center font-sans" style="font-family: 'Manrope', 'Inter', 'Noto Sans', sans-serif;">
+        <svg class="h-14 w-14 text-green-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <div class="text-xl font-semibold text-gray-900 mb-2">Item claimed successfully</div>
+        <button onclick="closeSuccessPopup()" class="mt-4 px-6 py-2 bg-[#1980e6] text-white rounded-lg text-lg font-semibold hover:bg-[#1566b7] transition-colors">OK</button>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="fixed inset-0 bg-gray-500 bg-opacity-40 hidden items-center justify-center z-50">
+    <div class="flex flex-col items-center">
+        <svg class="animate-spin h-10 w-10 text-[#1980e6] mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+        </svg>
+        <span class="text-[#1980e6] font-medium text-lg">Loading...</span>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toastContainer" class="fixed top-6 right-6 z-50 flex flex-col gap-2 items-end"></div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentItemId = null;
+let currentItemData = null;
+
+function showLoading() {
+    document.getElementById('loadingOverlay').classList.remove('hidden');
+    document.getElementById('loadingOverlay').classList.add('flex');
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').classList.add('hidden');
+    document.getElementById('loadingOverlay').classList.remove('flex');
+}
+
+function showToast(message, type = 'error') {
+    const toast = document.createElement('div');
+    toast.className = `flex items-center px-4 py-3 rounded-lg shadow-lg mb-2 text-base font-medium transition-all duration-300 ${type === 'error' ? 'bg-red-100 text-red-800 border border-red-300' : 'bg-green-100 text-green-800 border border-green-300'}`;
+    toast.innerHTML = `
+        <span class="mr-2">${type === 'error' ? '❌' : '✅'}</span>
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()" class="ml-4 text-lg font-bold text-gray-400 hover:text-gray-700 focus:outline-none">&times;</button>
+    `;
+    document.getElementById('toastContainer').appendChild(toast);
+    setTimeout(() => {
+        if (toast.parentElement) toast.parentElement.removeChild(toast);
+    }, 4000);
+}
+
+function showDetailsModal(itemId) {
+    showLoading();
+    currentItemId = itemId;
+    fetch(`/get_item_details/${itemId}`)
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to load details.');
+            return response.json();
+        })
+        .then(data => {
+            currentItemData = data;
+            let imagesHtml = '';
+            if (data.images && data.images.length > 0) {
+                imagesHtml = `<div class='flex flex-wrap gap-2 mb-4'>` +
+                    data.images.map(img => `<img src='/static/uploads/${img}' class='h-24 w-32 object-cover rounded' loading='lazy'>`).join('') +
+                    `</div>`;
+            }
+            document.getElementById('detailsContent').innerHTML = `
+                ${imagesHtml}
+                <div class='mb-2'><b>ID Number:</b> ${data.unique_id}</div>
+                <div class='mb-2'><b>Holder Name:</b> ${data.name}</div>
+                <div class='mb-2'><b>Description:</b> ${data.description || 'No description provided.'}</div>
+            `;
+            document.getElementById('detailsModal').classList.remove('hidden');
+            document.getElementById('detailsModal').classList.add('flex');
+        })
+        .catch(() => showToast('Failed to load details. Please try again.'))
+        .finally(() => hideLoading());
+}
+
+function closeDetailsModal() {
+    document.getElementById('detailsModal').classList.add('hidden');
+    document.getElementById('detailsModal').classList.remove('flex');
+}
+
+function showClaimModal() {
+    showLoading();
+    fetch(`/get_contact_details/${currentItemId}`)
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to load contact details.');
+            return response.json();
+        })
+        .then(data => {
+            let contact = data.contact_details;
+            let phonePattern = /(?:\+\d{1,3}[-.\s]?)?(?:\d{10,12}|\d{3}[-.\s]?\d{3}[-.\s]?\d{4})/g;
+            let match = contact.match(phonePattern);
+            let formatted = contact;
+            if (match) {
+                let phone = match[0].replace(/[-.\s]/g, '');
+                formatted = `<a href=\"tel:${phone}\" class=\"text-[#1980e6] underline hover:text-[#1566b7]\">${match[0]}</a>`;
+            }
+            document.getElementById('claimContact').innerHTML = formatted;
+            document.getElementById('copyContactBtn').setAttribute('data-contact', match ? match[0] : contact);
+            document.getElementById('copyMsg').classList.add('hidden');
+            document.getElementById('claimModal').classList.remove('hidden');
+            document.getElementById('claimModal').classList.add('flex');
+        })
+        .catch(() => showToast('Failed to load contact details. Please try again.'))
+        .finally(() => hideLoading());
+}
+
+function closeClaimModal() {
+    document.getElementById('claimModal').classList.add('hidden');
+    document.getElementById('claimModal').classList.remove('flex');
+}
+
+function proceedToClaim() {
+    showLoading();
+    document.getElementById('proceedClaimBtn').disabled = true;
+    
+    fetch(`/mark_as_claimed/${currentItemId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'  // Add CSRF token
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.message || 'Failed to claim item');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            closeClaimModal();
+            closeDetailsModal();
+            document.getElementById('claimSuccessPopup').classList.remove('hidden');
+            document.getElementById('claimSuccessPopup').classList.add('flex');
+        } else {
+            throw new Error(data.message || 'Failed to claim item');
+        }
+    })
+    .catch(error => {
+        showToast(error.message || 'Failed to claim item. Please try again.');
+        console.error('Claim error:', error);
+    })
+    .finally(() => {
+        hideLoading();
+        document.getElementById('proceedClaimBtn').disabled = false;
+    });
+}
+
+function closeSuccessPopup() {
+    document.getElementById('claimSuccessPopup').classList.add('hidden');
+    document.getElementById('claimSuccessPopup').classList.remove('flex');
+    window.location.href = '/';
+}
+
+function copyContactToClipboard() {
+    let btn = document.getElementById('copyContactBtn');
+    let contact = btn ? btn.getAttribute('data-contact') : '';
+    if (!contact) return;
+    // Use a temporary textarea for better compatibility
+    const textarea = document.createElement('textarea');
+    textarea.value = contact;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    document.getElementById('copyMsg').classList.remove('hidden');
+    setTimeout(() => {
+        document.getElementById('copyMsg').classList.add('hidden');
+    }, 1500);
+}
+</script>
+{% endblock %} 

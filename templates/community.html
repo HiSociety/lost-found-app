@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Community - Lost & Found{% endblock %}
+
+{% block content %}
+<div class="bg-white">
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Our Community</h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">Join our community of helpful individuals who make a difference by reuniting people with their lost documents.</p>
+        </div>
+    </div>
+
+    <!-- Success Stories Section -->
+    <section class="py-12 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-8">Success Stories</h2>
+            <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {% if success_stories %}
+                    {% for story in success_stories %}
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                        <div class="flex items-start mb-4">
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <span class="text-blue-600 font-semibold">{{ story.user.name[:2].upper() }}</span>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-semibold text-gray-900">{{ story.user.name }}</h3>
+                                <div class="flex items-center">
+                                    {% for i in range(story.rating) %}
+                                    <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                    </svg>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-gray-600">{{ story.content }}</p>
+                        <div class="mt-4 text-sm text-gray-500">
+                            {{ story.date_posted.strftime('%B %d, %Y') }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-span-full text-center py-8">
+                        <p class="text-gray-500">No success stories yet. Be the first to share your experience!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Top Helpers Section -->
+    <section class="py-12 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-8">Top Helpers</h2>
+            <div class="grid gap-6 md:grid-cols-5">
+                {% if top_helpers %}
+                    {% for helper in top_helpers %}
+                    <div class="bg-white rounded-lg shadow-sm p-6 text-center">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-blue-600 text-xl font-semibold">{{ helper.name[:2].upper() if helper.name else 'NA' }}</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">{{ helper.name }}</h3>
+                        <div class="text-sm text-gray-500 mb-2">Helper Points: {{ helper.helper_points }}</div>
+                        <div class="flex items-center justify-center">
+                            <span class="text-yellow-400 font-semibold">{{ helper.formatted_rating }}</span>
+                            {% if helper.rating_count > 0 %}
+                            <svg class="w-5 h-5 text-yellow-400 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-span-full text-center py-8">
+                        <p class="text-gray-500">No helpers to display yet. Start helping others to appear here!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Submit Testimonial Section -->
+    <section class="py-12 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-8">Share Your Experience</h2>
+            {% if current_user.is_authenticated %}
+                <form action="{{ url_for('submit_testimonial') }}" method="POST" class="max-w-2xl mx-auto bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                    <div class="mb-6">
+                        <label for="content" class="block text-sm font-medium text-gray-700 mb-2">Your Testimonial</label>
+                        <textarea id="content" name="content" rows="4" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Share your experience with our community..."></textarea>
+                    </div>
+                    <div class="mb-6">
+                        <label for="rating" class="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+                        <div class="flex items-center space-x-2">
+                            {% for i in range(1, 6) %}
+                            <label class="cursor-pointer">
+                                <input type="radio" name="rating" value="{{ i }}" required class="sr-only">
+                                <svg class="w-8 h-8 text-gray-300 hover:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                </svg>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="mb-6">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="is_success_story" class="form-checkbox h-4 w-4 text-blue-600">
+                            <span class="ml-2 text-sm text-gray-700">This is a success story (I found my document)</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        Submit Testimonial
+                    </button>
+                </form>
+            {% else %}
+                <div class="text-center py-8">
+                    <p class="text-gray-600 mb-4">Please log in to share your experience with our community.</p>
+                    <a href="{{ url_for('login') }}" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                        Log In
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Recent Testimonials Section -->
+    <section class="py-12 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-8">Recent Testimonials</h2>
+            <div class="grid gap-6 md:grid-cols-2">
+                {% if testimonials %}
+                    {% for testimonial in testimonials %}
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                        <div class="flex items-start mb-4">
+                            <div class="flex-shrink-0">
+                                <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                                    <span class="text-gray-600 font-semibold">{{ testimonial.user.name[:2].upper() }}</span>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-semibold text-gray-900">{{ testimonial.user.name }}</h3>
+                                <div class="flex items-center">
+                                    {% for i in range(testimonial.rating) %}
+                                    <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                    </svg>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-gray-600">{{ testimonial.content }}</p>
+                        <div class="mt-4 text-sm text-gray-500">
+                            {{ testimonial.date_posted.strftime('%B %d, %Y') }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-span-full text-center py-8">
+                        <p class="text-gray-500">No testimonials yet. Share your experience to be the first!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Community Guidelines Link -->
+    <section class="py-12 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Community Guidelines</h2>
+            <p class="text-gray-600 mb-8">Learn how to be a valuable member of our community and help others effectively.</p>
+            <a href="{{ url_for('guidelines') }}" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                Read Guidelines
+            </a>
+        </div>
+    </section>
+</div>
+{% endblock %} 
